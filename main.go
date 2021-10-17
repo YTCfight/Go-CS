@@ -1,34 +1,26 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"time"
+	"net"
+	"os"
 )
 
-var ch = make(chan int)
-
-func Printer(str string) {
-	for _, data := range str {
-		fmt.Printf("%c", data)
-		time.Sleep(time.Second)
-	}
-	fmt.Println()
-}
-
-func Person1() {
-	Printer("hello")
-	ch <- 666
-}
-
-func Person2() {
-	<-ch
-	Printer("world")
-}
-
 func main() {
-	go Person1()
-	go Person2()
-	for {
+	socket, _ := net.DialUDP("udp", nil, &net.UDPAddr{
+		IP:   net.IPv4(127, 0, 0, 1),
+		Port: 8000,
+	})
+	defer socket.Close()
 
+	reply := make([]byte, 1024)
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Println("请输入")
+		msg, _ := reader.ReadString('\n')
+		socket.Write([]byte(msg))
+		n, _, _ := socket.ReadFromUDP(reply)
+		fmt.Print("客户端收到的消息：", string(reply[:n]))
 	}
 }

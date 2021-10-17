@@ -1,14 +1,23 @@
-package test
+package main
 
-import "fmt"
+import (
+	"fmt"
+	"net"
+	"strings"
+)
 
-// 结构体名字和成员的首字母都要大写，外包才能访问
-type Student struct {
-	Name string
-	Age  int
-	Sex  string
-}
+func main() {
+	conn, _ := net.ListenUDP("udp", &net.UDPAddr{
+		IP:   net.IPv4(127, 0, 0, 1),
+		Port: 8000,
+	})
+	defer conn.Close()
 
-func init() {
-	fmt.Println("this is test.init")
+	content := make([]byte, 1024)
+	for {
+		n, addr, _ := conn.ReadFromUDP(content)
+		fmt.Print("服务端收到的内容：", string(content[:n]))
+		c := strings.ToUpper(string(content[:n]))
+		conn.WriteToUDP([]byte(c), addr)
+	}
 }
